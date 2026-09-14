@@ -3,8 +3,11 @@ package com.example.lifecycle;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.lifecycle.concurrency.CollectionConcurrencyDemo;
+import com.example.lifecycle.concurrency.ConcurrentHashMapInternalsDemo;
+import com.example.lifecycle.concurrency.CopyOnWriteArrayListInternalsDemo;
 import com.example.lifecycle.concurrency.DatabaseClientSingleton;
 import com.example.lifecycle.concurrency.ImmutableUserProfile;
+import com.example.lifecycle.concurrency.IteratorExamples;
 import com.example.lifecycle.concurrency.VolatileLazySingleton;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +18,49 @@ import java.util.concurrent.Future;
 import org.junit.jupiter.api.Test;
 
 class ConcurrencyExamplesTests {
+
+    @Test
+    void explainsConcurrentHashMapHashingAndAtomicMerge() {
+    ConcurrentHashMapInternalsDemo.MapOperationTrace putTrace =
+        ConcurrentHashMapInternalsDemo.tracePutIfAbsent("requests", 1, 16);
+    ConcurrentHashMapInternalsDemo.MapOperationTrace getTrace =
+        ConcurrentHashMapInternalsDemo.traceGet("requests", 16);
+
+    assertThat(putTrace.steps()).contains(
+        "1. key.hashCode() -> " + "requests".hashCode(),
+        "4. empty bucket: publish the key/value node with an atomic operation");
+    assertThat(getTrace.steps()).contains("4. read the bucket without locking");
+    assertThat(putTrace.bucket()).isEqualTo(getTrace.bucket());
+    assertThat(ConcurrentHashMapInternalsDemo.traceAtomicMerge("requests", 1, 3).finalValue())
+        .isEqualTo(4);
+    }
+
+    @Test
+    void explainsCopyOnWriteArrayListSnapshotsAndWriteCost() {
+    CopyOnWriteArrayListInternalsDemo.SnapshotTrace addTrace =
+        CopyOnWriteArrayListInternalsDemo.traceAddDuringIteration();
+    CopyOnWriteArrayListInternalsDemo.SnapshotTrace removeTrace =
+        CopyOnWriteArrayListInternalsDemo.traceRemoveDuringIteration();
+
+    assertThat(addTrace.observedByExistingIterator()).containsExactly("email", "audit");
+    assertThat(addTrace.currentValues()).containsExactly("email", "audit", "metrics");
+    assertThat(removeTrace.observedByExistingIterator()).containsExactly("email", "audit");
+    assertThat(removeTrace.currentValues()).containsExactly("audit");
+    }
+
+    @Test
+    void arrayListIteratorDetectsConcurrentStructuralMutation() throws Exception {
+        assertThat(IteratorExamples.failFastArrayListWithConcurrentMutation()).isTrue();
+    }
+
+    @Test
+    void copyOnWriteIteratorReadsSnapshotDuringConcurrentMutation() throws Exception {
+        IteratorExamples.IteratorObservation observation =
+                IteratorExamples.copyOnWriteWithConcurrentMutation();
+
+        assertThat(observation.observed()).containsExactly(1, 2);
+        assertThat(observation.finalValues()).containsExactly(1, 2, 3);
+    }
 
     @Test
     void holderAndVolatileSingletonsReturnOneInstanceAcrossThreads() throws Exception {

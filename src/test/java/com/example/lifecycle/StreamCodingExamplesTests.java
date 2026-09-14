@@ -3,6 +3,7 @@ package com.example.lifecycle;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.example.lifecycle.streams.StringExamples;
 import com.example.lifecycle.streams.StreamCodingExamples;
 import com.example.lifecycle.streams.StreamEmployee;
 import java.util.Arrays;
@@ -10,6 +11,19 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class StreamCodingExamplesTests {
+
+    @Test
+    void distinguishesStringIdentityFromValueEqualityAndShowsMutableBuilders() {
+        String literal = "java";
+        String separatelyCreated = new String("java");
+
+        assertThat(StringExamples.compare(literal, separatelyCreated).sameReference()).isFalse();
+        assertThat(StringExamples.compare(literal, separatelyCreated).equalValue()).isTrue();
+        assertThat(StringExamples.buildWithStringBuilder("Java", " 21"))
+                .isEqualTo("Java 21");
+        assertThat(StringExamples.buildWithStringBuffer("Spring", " Boot"))
+                .isEqualTo("Spring Boot");
+    }
 
     @Test
     void countsWordsIgnoringCaseAndNulls() {

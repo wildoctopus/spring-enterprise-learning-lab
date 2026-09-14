@@ -1,5 +1,6 @@
 package com.example.lifecycle.concurrency;
 
+import com.example.lifecycle.jvm.JvmMemoryAndGcDemo;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,19 @@ public class ConcurrencyDemoRunner implements CommandLineRunner {
                 + CollectionConcurrencyDemo.concurrentHashMapAtomicUpdates(4, 1000));
         System.out.println("CopyOnWriteArrayList snapshot: "
                 + CollectionConcurrencyDemo.copyOnWriteArrayListSnapshot());
+        System.out.println("\n--- Collection internal mental models ---");
+        System.out.println(ConcurrentHashMapInternalsDemo.traceGet("requests", 16).steps());
+        System.out.println(ConcurrentHashMapInternalsDemo.traceAtomicMerge("requests", 0, 3).steps());
+        System.out.println(CopyOnWriteArrayListInternalsDemo.traceAddDuringIteration().steps());
         System.out.println("BlockingQueue consumed sum: "
                 + CollectionConcurrencyDemo.blockingQueueProducerConsumer());
+        System.out.println("\n--- JVM memory snapshot ---");
+        JvmMemoryAndGcDemo.JvmMemorySnapshot memory = JvmMemoryAndGcDemo.memorySnapshot();
+        System.out.println("Heap used/committed/max: " + memory.heapUsed() + "/"
+                + memory.heapCommitted() + "/" + memory.heapMax());
+        System.out.println("Non-heap used/committed: " + memory.nonHeapUsed() + "/"
+                + memory.nonHeapCommitted());
+        System.out.println("Generational pools: " + JvmMemoryAndGcDemo.generationalPools());
+        System.out.println("GC collectors: " + memory.collectors());
     }
 }
