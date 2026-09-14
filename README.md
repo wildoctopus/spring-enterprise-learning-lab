@@ -16,9 +16,18 @@ Enterprise engineering is more than making an endpoint work. It is knowing:
 - How a query behaves with millions of rows.
 - Where transactions, caches, and proxies stop working.
 - How concurrency, failure, retries, and consistency change a design.
+- What really happens inside frequently discussed Java APIs, not just how to call them.
 - How to explain tradeoffs clearly in a senior or lead interview.
 
-The examples intentionally include both the good path and the trap.
+This is an interview-focused, practical Java and Spring lab. It includes runnable code, tests, traces, and failure scenarios for:
+
+- Java fundamentals: `String` immutability, string pooling, `==` versus `equals`, `StringBuilder`, and `StringBuffer`.
+- Collections and concurrency: `ConcurrentHashMap` hashing, buckets, collision lookup, `get`, `putIfAbsent`, and atomic `merge`.
+- Iterator consistency: fail-fast `ArrayList` behavior, `ConcurrentModificationException`, snapshot iteration, and fail-safe-style `CopyOnWriteArrayList` usage.
+- JVM internals: stack, heap, metaspace, code cache, native memory, Eden, Survivor S0/S1, Old generation, promotion, and GC reachability.
+- Enterprise Java and Spring: bean lifecycle, dependency injection, transactions, caching, JPA, SQL, streams, API design, concurrency, and design patterns.
+
+The examples intentionally include both the good path and the trap. Every topic asks the practical interview question: when should this be used, what does it cost, and what breaks under production load?
 
 ## Quick start
 
@@ -54,15 +63,74 @@ The cursor response contains `nextCursor`; pass it to retrieve the next page.
 
 Follow the sections in this order:
 
-1. **Bean lifecycle**: understand how Spring creates, initializes, proxies, and destroys beans.
-2. **Dependency injection and conditions**: learn how implementations are selected and replaced.
-3. **Transactions and caching**: see proxy boundaries, rollback, cache hits, and self-invocation traps.
-4. **Concurrency**: compare singleton publication, immutable state, concurrent collections, and queues.
-5. **JPA and SQL**: measure N+1 queries, fetch plans, joins, windows, indexes, and pagination.
-6. **Java Streams**: solve common coding problems while reasoning about ordering, complexity, and parallelism.
-7. **Java fundamentals and collection iteration**: compare string identity, mutability, and iterator consistency under concurrency.
-8. **SOLID and design patterns**: apply Strategy, Factory, Adapter, Decorator, Observer, Builder, and Facade to payments.
-9. **API design**: compare offset and cursor pagination and model errors with Java 21.
+1. **How does the Spring bean lifecycle work?** See construction, dependency injection, initialization callbacks, post-processors, ready events, proxies, and destruction.
+2. **How should Spring choose implementations?** Practice constructor injection, conditional beans, replacement with test doubles, and configuration boundaries.
+3. **How do transactions and caches work through Spring proxies?** Observe commit, rollback, cache hits, and the self-invocation trap.
+4. **What is the difference between `String`, `StringBuilder`, and `StringBuffer`?** Compare immutability, string pooling, `==`, `equals`, local mutation, and synchronized legacy builders.
+5. **How do concurrent Java collections work internally?** Trace `ConcurrentHashMap` hashing, buckets, collisions, `get`, `putIfAbsent`, atomic `merge`, and `CopyOnWriteArrayList` snapshot writes.
+6. **What is the difference between fail-fast and fail-safe-style iteration?** Reproduce `ConcurrentModificationException`, multithreaded structural changes, stable snapshots, and collection-selection tradeoffs.
+7. **How is JVM memory divided and how does garbage collection work?** Connect stack references, heap objects, metaspace, native memory, Eden, S0/S1, Old generation, promotion, memory pools, and reachability.
+8. **How do JPA and SQL behave at scale?** Measure N+1 queries, fetch plans, joins, window functions, indexes, transactions, and offset versus keyset pagination.
+9. **How should Java Streams solve common coding problems?** Practice grouping, flattening, ranking, duplicate handling, ordering, `Optional`, primitive aggregation, and parallelism tradeoffs.
+10. **How do SOLID principles and design patterns work in an enterprise service?** Apply Strategy, Factory, Adapter, Decorator, Observer, Builder, and Facade to payments.
+11. **How should a production API handle pagination and errors?** Compare offset and cursor pagination, validate input, model sealed error categories, and test continuation and tampering.
+
+## Interview question index
+
+Use these questions as a practical study checklist. Each topic has executable Java or Spring code, tests that state the expected behavior, and documentation explaining the production tradeoff.
+
+### Java fundamentals and strings
+
+- Why is `String` immutable, and how does string pooling affect object identity?
+- Why can `==` appear to work for string literals but fail for separately created strings?
+- When should I use `StringBuilder` instead of repeated string concatenation?
+- When is `StringBuffer` appropriate, and why does synchronized mutation not automatically make a workflow thread-safe?
+
+### Collections and multithreading
+
+- How does `ConcurrentHashMap` calculate a hash and select a bucket?
+- How does `ConcurrentHashMap.get()` find a value and handle hash collisions?
+- Why can concurrent readers proceed without one global map lock?
+- Why are `putIfAbsent`, `compute`, and `merge` different from separate `get` and `put` calls?
+- How does `ConcurrentHashMap.merge()` prevent lost updates for a single key under contention?
+- When should I use `ConcurrentHashMap` instead of `HashMap` or synchronized access?
+- How does `CopyOnWriteArrayList` let an iterator read a stable snapshot during a write?
+- Why is `CopyOnWriteArrayList` useful for listener registries but expensive for write-heavy workloads?
+- What does a fail-fast iterator detect, and why is `ConcurrentModificationException` not a synchronization mechanism?
+- When should I choose synchronized iteration, a snapshot, a concurrent collection, or message passing?
+
+### JVM memory and garbage collection
+
+- What is stored in a Java thread stack, and how is a reference different from the heap object it points to?
+- What lives in the heap, metaspace, code cache, and native memory?
+- What happens to a new object in Eden during a young or minor collection?
+- What are Survivor S0 and S1, and why do they alternate roles?
+- When is an object promoted from the young generation to the Old or Tenured generation?
+- What is the difference between a minor collection and an old-generation or major collection?
+- How do GC roots determine whether an object is reachable or eligible for collection?
+- Why does `System.gc()` not guarantee immediate garbage collection?
+- How do G1 regions differ from the classic Eden/Survivor/Old generation diagram?
+- How can MXBeans, GC logs, JFR, heap dumps, and allocation profiles help diagnose memory problems?
+
+### Spring and enterprise design
+
+- In what order does Spring construct, initialize, proxy, and destroy a bean?
+- When should I use constructor injection, `@PostConstruct`, `ApplicationReadyEvent`, or a shutdown callback?
+- How do `@ConditionalOnProperty`, `@Primary`, `@Qualifier`, and `@ConditionalOnMissingBean` affect implementation selection?
+- Why do `@Transactional` and `@Cacheable` fail when called through self-invocation?
+- How should a service handle rollback, retries, idempotency, outbox events, and external provider failures?
+- How do Strategy, Factory, Adapter, Decorator, Observer, Builder, and Facade solve different change pressures?
+
+### JPA, SQL, streams, and APIs
+
+- How do I prove an N+1 query problem and choose between `EntityGraph`, `JOIN FETCH`, DTO projection, and JDBC?
+- How do lazy loading, persistence context state, dirty checking, optimistic locking, and batch processing interact?
+- How do `GROUP BY`, `HAVING`, window functions, anti-joins, duplicate detection, and running totals work?
+- When should I use offset pagination versus cursor or keyset pagination?
+- How do I make a cursor deterministic, tenant-safe, bounded, and tamper-resistant?
+- How do Java Streams handle grouping, flattening, duplicates, ordering, `Optional`, and primitive aggregation?
+- When is a loop clearer or safer than a stream, and when is `parallelStream()` a bad performance assumption?
+- How should a Java 21 API model validation errors with records, sealed types, pattern matching, and controller advice?
 
 ## Repository map
 
@@ -316,6 +384,13 @@ The repository includes senior/lead themes commonly discussed in large enterpris
 
 Prepare to explain:
 
+- Why `String` is immutable, when `StringBuilder` is preferable to `StringBuffer`, and why `equals` is correct for content comparison while `==` checks identity.
+- How `ConcurrentHashMap` calculates a bucket, reads without a global lock, handles collisions, and makes `merge` or `compute` atomic for one key.
+- Why `get` followed by `put` is not the same as an atomic map operation under contention.
+- Why `CopyOnWriteArrayList` is effective for many reads and rare writes, and why copying on every write is expensive for write-heavy workloads.
+- What fail-fast iterators detect, why `ConcurrentModificationException` is best-effort rather than a synchronization mechanism, and when snapshot iteration is appropriate.
+- How stack references, heap objects, GC roots, Eden, Survivor S0/S1, promotion, Old generation, metaspace, and native memory fit together.
+- Why `System.gc()` is not a production memory-management strategy and how to investigate memory with GC logs, JFR, heap dumps, and allocation profiles.
 - How you prove an N+1 fix with query counts and plans.
 - When cursor pagination beats offset and how to secure a cursor.
 - How to prevent duplicate payments with idempotency and reconciliation.
@@ -334,6 +409,7 @@ The tests are executable learning notes:
 ```bash
 mvn -q -Dtest=BeanLifecycleDemoApplicationTests test
 mvn -q -Dtest=ConcurrencyExamplesTests test
+mvn -q -Dtest=JvmMemoryExamplesTests test
 mvn -q -Dtest=JpaExamplesTests test
 mvn -q -Dtest=PaginationApiTests test
 mvn -q -Dtest=StreamCodingExamplesTests test
