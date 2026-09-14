@@ -9,7 +9,9 @@ import org.springframework.cache.CacheManager;
 import com.example.lifecycle.features.OrderRepository;
 import com.example.lifecycle.features.OrderService;
 import com.example.lifecycle.features.ProductCatalog;
+import com.example.lifecycle.features.ConfigurationBeanDemoConfiguration.ConfiguredGreetingService;
 import com.example.lifecycle.features.ShippingProvider;
+import java.time.Clock;
 
 @SpringBootTest
 class BeanLifecycleDemoApplicationTests {
@@ -29,8 +31,20 @@ class BeanLifecycleDemoApplicationTests {
     @Autowired
     private CacheManager cacheManager;
 
+    @Autowired
+    private Clock demoClock;
+
+    @Autowired
+    private ConfiguredGreetingService configuredGreetingService;
+
     @Test
     void contextLoads() {
+    }
+
+    @Test
+    void configurationAndBeanRegisterAndWireInfrastructureObjects() {
+        assertThat(demoClock).isSameAs(configuredGreetingService.clock());
+        assertThat(demoClock.getZone()).isEqualTo(java.time.ZoneOffset.UTC);
     }
 
     @Test

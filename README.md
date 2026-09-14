@@ -117,6 +117,8 @@ Use these questions as a practical study checklist. Each topic has executable Ja
 - In what order does Spring construct, initialize, proxy, and destroy a bean?
 - When should I use constructor injection, `@PostConstruct`, `ApplicationReadyEvent`, or a shutdown callback?
 - How do `@ConditionalOnProperty`, `@Primary`, `@Qualifier`, and `@ConditionalOnMissingBean` affect implementation selection?
+- What problem do `@Configuration` and `@Bean` solve, and when should I choose them over `@Component`?
+- How can I register a third-party client or JDK type as a Spring bean and inject it into another bean?
 - Why do `@Transactional` and `@Cacheable` fail when called through self-invocation?
 - How should a service handle rollback, retries, idempotency, outbox events, and external provider failures?
 - How do Strategy, Factory, Adapter, Decorator, Observer, Builder, and Facade solve different change pressures?
@@ -189,6 +191,15 @@ The [features package](src/main/java/com/example/lifecycle/features) demonstrate
 - `ShippingConfiguration` selects `FastShippingProvider` with `@ConditionalOnProperty` and supplies `DefaultShippingProvider` with `@ConditionalOnMissingBean`.
 - `OrderService` demonstrates `@Transactional` commit and rollback using H2.
 - `ProductCatalog` demonstrates `@Cacheable` and cache hits.
+- `ConfigurationBeanDemoConfiguration` demonstrates `@Configuration` as a configuration boundary and `@Bean` as an explicit factory for a JDK/infrastructure type.
+
+### `@Configuration` and `@Bean`: what problem do they solve?
+
+- **`@Configuration`** tells Spring that a class contains bean definitions and configuration rules. Spring discovers it during component scanning and uses it to build the application context.
+- **`@Bean`** tells Spring to call a method, take the returned object, and manage it as a bean: dependency injection, lifecycle, scopes, conditions, and proxy integration can apply.
+- Use `@Component` when you own a class and it is naturally a scanned application component. Use `@Bean` when you need to construct a third-party class, adapt an SDK, choose an implementation, configure constructor arguments, or express a factory decision.
+- Prefer method parameters for dependencies between `@Bean` methods, as shown by `configuredGreetingService(Clock demoClock)`. This makes the dependency explicit and testable.
+- `@Configuration` is a boundary for application wiring, not a replacement for business services. Keep business behavior in normal services and keep object construction and environment choices in configuration.
 
 Important traps:
 
