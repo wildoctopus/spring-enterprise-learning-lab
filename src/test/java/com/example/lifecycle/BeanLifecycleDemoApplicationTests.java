@@ -1,0 +1,61 @@
+package com.example.lifecycle;
+
+import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import com.example.lifecycle.features.OrderRepository;
+import com.example.lifecycle.features.OrderService;
+import com.example.lifecycle.features.ProductCatalog;
+import com.example.lifecycle.features.ShippingProvider;
+
+@SpringBootTest
+class BeanLifecycleDemoApplicationTests {
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private ProductCatalog productCatalog;
+
+    @Autowired
+    private ShippingProvider shippingProvider;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Test
+    void contextLoads() {
+    }
+
+    @Test
+    void propertySelectsConditionalShippingProvider() {
+        assertThat(shippingProvider.providerName()).isEqualTo("fast");
+    }
+
+    @Test
+    void runtimeFailureRollsBackTransactionalWrite() {
+        long before = orderRepository.count();
+
+        assertThatThrownBy(() -> orderService.createOrderThenFail("Rollback User"))
+                .isInstanceOf(IllegalStateException.class);
+
+        assertThat(orderRepository.count()).isEqualTo(before);
+    }
+
+    @Test
+    void cacheableSkipsSecondUnderlyingCall() {
+        cacheManager.getCache("products").clear();
+        int before = productCatalog.databaseCalls();
+
+        assertThat(productCatalog.findProduct("cached-1"))
+                .isEqualTo(productCatalog.findProduct("cached-1"));
+
+        assertThat(productCatalog.databaseCalls()).isEqualTo(before + 1);
+    }
+}
