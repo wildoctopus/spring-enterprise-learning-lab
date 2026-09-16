@@ -1,5 +1,6 @@
 package com.example.lifecycle;
 
+import com.example.lifecycle.playground.PlaygroundSelection;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -9,8 +10,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApplicationStartupPhases implements ApplicationRunner {
 
+    private boolean lifecycleSelected;
+
     @Override
     public void run(ApplicationArguments args) {
+        lifecycleSelected = PlaygroundSelection.includes("lifecycle", args.getSourceArgs());
+        if (!lifecycleSelected) {
+            return;
+        }
         // ApplicationRunner runs after the context is refreshed and before
         // ApplicationReadyEvent. Use it for startup work that needs parsed
         // command-line arguments, not for bean construction or basic wiring.
@@ -19,6 +26,9 @@ public class ApplicationStartupPhases implements ApplicationRunner {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
+        if (!lifecycleSelected) {
+            return;
+        }
         // ApplicationReadyEvent is later than ApplicationRunner. It is a good
         // signal for readiness metrics, warmups, or announcing availability.
         System.out.println("[ApplicationReadyEvent] Application is ready to serve traffic");

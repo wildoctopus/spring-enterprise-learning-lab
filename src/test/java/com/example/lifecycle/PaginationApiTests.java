@@ -72,4 +72,17 @@ class PaginationApiTests {
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody()).containsEntry("code", "INVALID_PAGINATION_REQUEST");
     }
+
+    @Test
+    void cursorCannotBeReplayedAcrossTenants() {
+        String base = "http://localhost:" + port + "/api/pagination/records/cursor";
+        ResponseEntity<Map> first = restTemplate.getForEntity(base + "?tenantId=tenant-a&limit=3", Map.class);
+        String cursor = (String) first.getBody().get("nextCursor");
+
+        ResponseEntity<Map> response = restTemplate.getForEntity(
+                base + "?tenantId=tenant-b&limit=3&cursor=" + cursor, Map.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getBody()).containsEntry("code", "INVALID_CURSOR");
+    }
 }

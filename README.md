@@ -59,6 +59,101 @@ curl 'http://localhost:8080/api/pagination/records/offset?tenantId=tenant-a&offs
 
 The cursor response contains `nextCursor`; pass it to retrieve the next page.
 
+### Focused playground mode
+
+The application can run one learning topic instead of printing every demo. The
+default remains the complete lab:
+
+```bash
+mvn spring-boot:run
+```
+
+List the available topics:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.arguments="--playground=help"
+```
+
+Run one topic and read its `Observe`, `Break it`, and `Enterprise question`
+prompts before changing the nearby implementation:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.arguments="--playground=concurrency"
+mvn spring-boot:run -Dspring-boot.run.arguments="--playground=jpa"
+mvn spring-boot:run -Dspring-boot.run.arguments="--playground=features"
+mvn spring-boot:run -Dspring-boot.run.arguments="--playground=jvm"
+mvn spring-boot:run -Dspring-boot.run.arguments="--playground=pagination"
+```
+
+Available topic names are `lifecycle`, `features`, `concurrency`, `strings`,
+`jvm`, `jpa`, `sql`, `streams`, `design`, and `pagination`. The `transactions`
+name is covered by the `features` runner, so use `--playground=features` for
+that example.
+
+Use this loop for each topic:
+
+1. Read the printed `Observe` prompt and the linked implementation.
+2. Run the focused test class with `mvn -Dtest=<TestClass> test`.
+3. Change the line described by `Break it` and rerun the test.
+4. Restore the code and answer the enterprise question in the context of a real service.
+
+The first executable break/fix exercises are in the concurrency module:
+
+- [ImmutableUserProfile.java](src/main/java/com/example/lifecycle/concurrency/ImmutableUserProfile.java)
+  is the corrected immutable value object.
+- [BadImmutableUserProfile.java](src/main/java/com/example/lifecycle/concurrency/BadImmutableUserProfile.java)
+  deliberately aliases the caller's mutable list.
+- [SingletonBreakageExamples.java](src/main/java/com/example/lifecycle/concurrency/SingletonBreakageExamples.java)
+  demonstrates reflection bypassing a private Singleton constructor.
+- [SerializableSingletonWithoutReadResolve.java](src/main/java/com/example/lifecycle/concurrency/SerializableSingletonWithoutReadResolve.java)
+  demonstrates deserialization creating a second instance.
+- [EnumSingleton.java](src/main/java/com/example/lifecycle/concurrency/EnumSingleton.java)
+  provides the robust enum alternative.
+
+Run those exercises with:
+
+```bash
+mvn -Dtest=ConcurrencyExamplesTests test
+```
+
+The JVM topic prints live memory-pool and reachability observations. The
+pagination topic runs offset and cursor requests in-process and then you can
+continue with the HTTP examples from the API section above.
+
+Additional enterprise failure labs are executable in the normal test suite:
+
+- `BeanLifecycleDemoApplicationTests#selfInvocationBypassesTransactionalProxy`
+  shows why an internal call does not cross a Spring transaction proxy.
+- `PaginationApiTests#cursorCannotBeReplayedAcrossTenants` shows tenant-bound
+  cursor validation.
+- `SqlQueryExamplesTests#productionQueriesHaveDeterministicBounds` checks that
+  latest-row and keyset queries are ordered and bounded.
+- `StreamCodingExamplesTests#streamPlaygroundMakesTieBreakerFailureVisible`
+  compares an implicit stream tie with an explicit business rule.
+
+### Team-lead concurrency checklist
+
+The concurrency playground now covers the questions to ask before approving
+asynchronous production code:
+
+- **Executor ownership:** who creates, names, sizes, and shuts down the pool?
+- **Queue policy:** is work bounded, and what happens when the queue is full?
+- **Failure handling:** where does a failed `Future` or `CompletableFuture` become visible?
+- **Cancellation:** does interruption stop the task, and is cleanup idempotent?
+- **Composition:** are independent calls combined with `allOf` instead of blocking one by one?
+- **Timeouts and fallback:** is a downstream timeout bounded, observable, and paired with a safe fallback?
+- **Context:** how are tenant, trace, security, and logging contexts propagated across threads?
+- **Load behavior:** what happens under overload, deploy shutdown, dependency slowness, and partial failure?
+
+Run the focused exercises with:
+
+```bash
+mvn -Dtest=ConcurrencyExamplesTests test
+```
+
+The implementation is in
+[AsyncCoordinationPlayground.java](src/main/java/com/example/lifecycle/concurrency/AsyncCoordinationPlayground.java).
+
 ## Learning path
 
 Follow the sections in this order:

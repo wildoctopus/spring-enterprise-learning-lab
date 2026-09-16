@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.example.lifecycle.streams.StringExamples;
 import com.example.lifecycle.streams.StreamCodingExamples;
 import com.example.lifecycle.streams.StreamEmployee;
+import com.example.lifecycle.playground.StreamPlaygroundExercises;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -121,4 +122,14 @@ class StreamCodingExamplesTests {
         assertThat(StreamCodingExamples.findEmployeeByName(employees, "lin"))
                 .contains(employees.get(2));
     }
+
+        @Test
+        void streamPlaygroundMakesTieBreakerFailureVisible() {
+                List<StreamEmployee> employees = List.of(
+                                new StreamEmployee("Grace", "Engineering", 150_000),
+                                new StreamEmployee("Ada", "Engineering", 150_000));
+
+                assertThat(StreamPlaygroundExercises.badTieBreaker(employees).name()).isEqualTo("Grace");
+                assertThat(StreamPlaygroundExercises.explicitTieBreaker(employees).name()).isEqualTo("Grace");
+        }
 }

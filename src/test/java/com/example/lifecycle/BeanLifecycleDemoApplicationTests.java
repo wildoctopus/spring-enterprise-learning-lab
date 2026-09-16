@@ -9,6 +9,7 @@ import org.springframework.cache.CacheManager;
 import com.example.lifecycle.features.OrderRepository;
 import com.example.lifecycle.features.OrderService;
 import com.example.lifecycle.features.ProductCatalog;
+import com.example.lifecycle.features.TransactionProxyPlayground;
 import com.example.lifecycle.features.ConfigurationBeanDemoConfiguration.ConfiguredGreetingService;
 import com.example.lifecycle.features.ShippingProvider;
 import java.time.Clock;
@@ -36,6 +37,9 @@ class BeanLifecycleDemoApplicationTests {
 
     @Autowired
     private ConfiguredGreetingService configuredGreetingService;
+
+    @Autowired
+    private TransactionProxyPlayground transactionProxyPlayground;
 
     @Test
     void contextLoads() {
@@ -71,5 +75,16 @@ class BeanLifecycleDemoApplicationTests {
                 .isEqualTo(productCatalog.findProduct("cached-1"));
 
         assertThat(productCatalog.databaseCalls()).isEqualTo(before + 1);
+    }
+
+    @Test
+    void selfInvocationBypassesTransactionalProxy() {
+        long before = orderRepository.count();
+
+        assertThatThrownBy(() -> transactionProxyPlayground
+                .selfInvocationDoesNotStartTransaction("Self invocation"))
+                .isInstanceOf(IllegalStateException.class);
+
+        assertThat(orderRepository.count()).isEqualTo(before + 1);
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import com.example.lifecycle.playground.PlaygroundSelection;
 
 @SpringBootApplication
 @EnableCaching
@@ -21,13 +22,23 @@ public class BeanLifecycleDemoApplication {
     }
 
     public static void main(String[] args) {
+        if (PlaygroundSelection.isHelp(args)) {
+            com.example.lifecycle.playground.PlaygroundGuideRunner.printCatalogAndUsage();
+            return;
+        }
+        if (!PlaygroundSelection.isKnownTopic(args)) {
+            throw new IllegalArgumentException("Unknown playground '"
+                    + PlaygroundSelection.selectedTopic(args) + "'");
+        }
         // Spring creates the ApplicationContext, discovers bean definitions,
         // creates eager singleton beans, and runs their initialization phases.
         ConfigurableApplicationContext context = SpringApplication.run(BeanLifecycleDemoApplication.class, args);
 
-        System.out.println("\n--- Application is ready ---");
-        LifecycleBean bean = context.getBean(LifecycleBean.class);
-        bean.doWork();
+        if (PlaygroundSelection.includes("lifecycle", args)) {
+            System.out.println("\n--- Application is ready ---");
+            LifecycleBean bean = context.getBean(LifecycleBean.class);
+            bean.doWork();
+        }
 
         // The web server owns this context and closes it during graceful
         // application shutdown, which triggers @PreDestroy and destroy methods.

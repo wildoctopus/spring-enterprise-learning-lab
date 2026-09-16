@@ -1,5 +1,6 @@
 package com.example.lifecycle.streams;
 
+import com.example.lifecycle.playground.PlaygroundSelection;
 import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -11,6 +12,9 @@ public class StreamDemoRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+                if (!PlaygroundSelection.includes("streams", args)) {
+                        return;
+                }
         List<StreamEmployee> employees = List.of(
                 new StreamEmployee("Ada", "Engineering", 150_000),
                 new StreamEmployee("Grace", "Engineering", 170_000),

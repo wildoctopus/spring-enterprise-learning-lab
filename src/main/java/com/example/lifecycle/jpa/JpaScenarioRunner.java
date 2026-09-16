@@ -1,5 +1,6 @@
 package com.example.lifecycle.jpa;
 
+import com.example.lifecycle.playground.PlaygroundSelection;
 import org.hibernate.stat.Statistics;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -19,6 +20,9 @@ public class JpaScenarioRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!PlaygroundSelection.includes("jpa", args)) {
+            return;
+        }
         departmentService.seedIfEmpty();
 
         hibernateStatistics.clear();

@@ -5,12 +5,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.lifecycle.sql.SqlQueryExamples;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import com.example.lifecycle.playground.SqlPlaygroundExercises;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
 @SpringBootTest
 class SqlQueryExamplesTests {
+
+    @Test
+    void productionQueriesHaveDeterministicBounds() {
+        assertThat(SqlPlaygroundExercises.latestOrderHasDeterministicTieBreaker()).isTrue();
+        assertThat(SqlPlaygroundExercises.keysetQueryIsBoundedAndOrdered()).isTrue();
+    }
 
     @Autowired
     private JdbcClient jdbcClient;

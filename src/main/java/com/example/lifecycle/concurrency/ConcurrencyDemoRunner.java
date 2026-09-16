@@ -1,6 +1,6 @@
 package com.example.lifecycle.concurrency;
 
-import com.example.lifecycle.jvm.JvmMemoryAndGcDemo;
+import com.example.lifecycle.playground.PlaygroundSelection;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -11,6 +11,9 @@ public class ConcurrencyDemoRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+                if (!PlaygroundSelection.includes("concurrency", args)) {
+                        return;
+                }
         System.out.println("\n--- Singleton and immutable object ---");
         System.out.println("Holder singleton same instance: "
                 + (DatabaseClientSingleton.getInstance() == DatabaseClientSingleton.getInstance()));
@@ -32,13 +35,20 @@ public class ConcurrencyDemoRunner implements CommandLineRunner {
         System.out.println(CopyOnWriteArrayListInternalsDemo.traceAddDuringIteration().steps());
         System.out.println("BlockingQueue consumed sum: "
                 + CollectionConcurrencyDemo.blockingQueueProducerConsumer());
-        System.out.println("\n--- JVM memory snapshot ---");
-        JvmMemoryAndGcDemo.JvmMemorySnapshot memory = JvmMemoryAndGcDemo.memorySnapshot();
-        System.out.println("Heap used/committed/max: " + memory.heapUsed() + "/"
-                + memory.heapCommitted() + "/" + memory.heapMax());
-        System.out.println("Non-heap used/committed: " + memory.nonHeapUsed() + "/"
-                + memory.nonHeapCommitted());
-        System.out.println("Generational pools: " + JvmMemoryAndGcDemo.generationalPools());
-        System.out.println("GC collectors: " + memory.collectors());
+        System.out.println("Executor results: " + AsyncCoordinationPlayground.executeAll(
+                java.util.List.of(() -> 2, () -> 3), 2));
+        try (var executor = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            System.out.println("CompletableFuture fan-in: "
+                    + AsyncCoordinationPlayground.fanOutAndCombine(
+                            java.util.List.of(() -> 2, () -> 3), executor).join());
+            System.out.println("Fallback result: "
+                    + AsyncCoordinationPlayground.withFallback(
+                            () -> { throw new IllegalStateException("primary down"); },
+                            () -> "cached-response", executor).join());
+        }
+        System.out.println("Bounded pool rejection: "
+                + AsyncCoordinationPlayground.boundedPoolRejectsWithoutUnboundedQueue().rejected());
+        System.out.println("Failure propagation: " + AsyncCoordinationPlayground.failedTaskMessage());
+        System.out.println("Timeout handled: " + AsyncCoordinationPlayground.timeoutIsBounded());
     }
 }

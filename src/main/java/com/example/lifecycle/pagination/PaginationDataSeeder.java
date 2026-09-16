@@ -10,6 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
+import com.example.lifecycle.playground.PlaygroundSelection;
 
 @Component
 @Order(5)
@@ -28,6 +29,9 @@ public class PaginationDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!PlaygroundSelection.includes("pagination", args)) {
+            return;
+        }
         if (jdbcClient.sql("select count(*) from pagination_records")
                 .query(Long.class).single() > 0) {
             return;

@@ -43,7 +43,11 @@ public class PaginationService {
     @Transactional(readOnly = true)
     public PageResponse<PaginationRecord> cursorPage(String tenantId, String cursor, int limit) {
         validate(tenantId, 0, limit);
-        long lastSeenId = decodeCursor(cursor);
+        CursorPosition position = decodeCursor(cursor);
+        if (position.tenantId() != null && !position.tenantId().equals(tenantId)) {
+            throw new InvalidCursorException("cursor belongs to another tenant", null);
+        }
+        long lastSeenId = position.lastSeenId();
         List<PaginationRecord> items = jdbcClient.sql("""
                 select id, tenant_id, payload, created_at
                 from pagination_records
@@ -60,12 +64,12 @@ public class PaginationService {
         if (hasMore) {
             items = items.subList(0, limit);
         }
-        String nextCursor = hasMore ? encodeCursor(items.get(items.size() - 1).id()) : null;
+        String nextCursor = hasMore ? encodeCursor(tenantId, items.get(items.size() - 1).id()) : null;
         return new PageResponse<>(items, nextCursor, hasMore, limit);
     }
 
     public String firstCursor() {
-        return encodeCursor(0);
+        return encodeCursor(null, 0);
     }
 
     private boolean hasRowAfterOffset(String tenantId, int nextOffset) {
@@ -100,23 +104,28 @@ public class PaginationService {
         }
     }
 
-    private long decodeCursor(String cursor) {
+    private CursorPosition decodeCursor(String cursor) {
         if (cursor == null || cursor.isBlank()) {
-            return 0;
+            return new CursorPosition(null, 0);
         }
         try {
-            long value = Long.parseLong(new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8));
-            if (value < 0) {
-                throw new NumberFormatException("negative cursor");
+            String decoded = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8);
+            String[] parts = decoded.split(":", -1);
+            long value = Long.parseLong(parts.length == 2 ? parts[1] : decoded);
+            if (value < 0 || parts.length > 2) {
+                throw new NumberFormatException("invalid cursor");
             }
-            return value;
+            return new CursorPosition(parts.length == 2 && !parts[0].isBlank() ? parts[0] : null, value);
         } catch (IllegalArgumentException exception) {
             throw new InvalidCursorException("cursor is not a valid opaque position", exception);
         }
     }
 
-    private String encodeCursor(long id) {
-        return Base64.getUrlEncoder().withoutPadding()
-                .encodeToString(Long.toString(id).getBytes(StandardCharsets.UTF_8));
+    private String encodeCursor(String tenantId, long id) {
+        String value = tenantId == null ? Long.toString(id) : tenantId + ":" + id;
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(value.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private record CursorPosition(String tenantId, long lastSeenId) {
     }
 }

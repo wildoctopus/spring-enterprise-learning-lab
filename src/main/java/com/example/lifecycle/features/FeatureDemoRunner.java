@@ -1,5 +1,6 @@
 package com.example.lifecycle.features;
 
+import com.example.lifecycle.playground.PlaygroundSelection;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,9 @@ public class FeatureDemoRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!PlaygroundSelection.includes("features", args)) {
+            return;
+        }
         System.out.println("\n--- Dependency injection and conditional bean ---");
         orderService.createOrder("Ada");
         System.out.println("Orders after commit: " + orderRepository.count());

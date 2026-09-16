@@ -1,5 +1,6 @@
 package com.example.lifecycle.sql;
 
+import com.example.lifecycle.playground.PlaygroundSelection;
 import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -18,6 +19,9 @@ public class SqlQueryDemoRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!PlaygroundSelection.includes("sql", args)) {
+            return;
+        }
         List<String> statusSummary = jdbcClient.sql(SqlQueryExamples.STATUS_SUMMARY)
                 .query((row, rowNumber) -> row.getString("status") + "=" + row.getLong("order_count"))
                 .list();

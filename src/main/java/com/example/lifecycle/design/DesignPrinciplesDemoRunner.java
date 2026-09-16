@@ -1,5 +1,6 @@
 package com.example.lifecycle.design;
 
+import com.example.lifecycle.playground.PlaygroundSelection;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,9 @@ public class DesignPrinciplesDemoRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+                if (!PlaygroundSelection.includes("design", args)) {
+                        return;
+                }
         List<String> auditLog = new ArrayList<>();
         PaymentGateway auditedCardGateway = new AuditedPaymentGateway(
                 new CardPaymentGateway(),
