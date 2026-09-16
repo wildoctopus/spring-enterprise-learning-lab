@@ -31,6 +31,6 @@ class PlaygroundSelectionTests {
     void catalogCoversTheApplicationLearningAreas() {
         assertThat(PlaygroundCatalog.topics()).extracting(PlaygroundCatalog.Topic::id)
                 .containsExactly("lifecycle", "features", "concurrency", "strings", "jvm",
-                        "jpa", "sql", "streams", "design", "pagination");
+                        "jpa", "sql", "streams", "design", "pagination", "rest");
     }
 }

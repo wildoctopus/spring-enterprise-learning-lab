@@ -83,10 +83,11 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--playground=jpa"
 mvn spring-boot:run -Dspring-boot.run.arguments="--playground=features"
 mvn spring-boot:run -Dspring-boot.run.arguments="--playground=jvm"
 mvn spring-boot:run -Dspring-boot.run.arguments="--playground=pagination"
+mvn spring-boot:run -Dspring-boot.run.arguments="--playground=rest"
 ```
 
 Available topic names are `lifecycle`, `features`, `concurrency`, `strings`,
-`jvm`, `jpa`, `sql`, `streams`, `design`, and `pagination`. The `transactions`
+`jvm`, `jpa`, `sql`, `streams`, `design`, `pagination`, and `rest`. The `transactions`
 name is covered by the `features` runner, so use `--playground=features` for
 that example.
 
@@ -243,6 +244,7 @@ Use these questions as a practical study checklist. Each topic has executable Ja
 | Strings and iterators | [StringExamples.java](src/main/java/com/example/lifecycle/streams/StringExamples.java), [IteratorExamples.java](src/main/java/com/example/lifecycle/concurrency/IteratorExamples.java) | identity versus equality, builders, fail-fast and snapshot iteration |
 | SOLID and patterns | [design package](src/main/java/com/example/lifecycle/design) | enterprise payment authorization scenario |
 | Pagination and API errors | [pagination package](src/main/java/com/example/lifecycle/pagination) | HTTP endpoints, cursors, sealed problems |
+| REST API design and idempotency | [rest package](src/main/java/com/example/lifecycle/rest) | Path/query parameters, retries, idempotency, payload limits |
 | Tests | [test package](src/test/java/com/example/lifecycle) | executable specifications for every module |
 
 ## 1. Spring bean lifecycle
@@ -483,6 +485,45 @@ Cursor pagination still needs a deterministic unique ordering, such as `(created
 - Unexpected errors return a safe generic message while details remain in server logs.
 
 The API validates tenant, cursor, and page size. It caps `limit` at 100 and uses `(tenant_id, id)` for the access path. The tests cover cursor continuation, offset pages, invalid cursors, and invalid limits.
+
+## 11. REST API design and idempotency
+
+Run the REST playground to print the failure scenarios and lead-level design questions:
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.arguments="--playground=rest"
+```
+
+The same topic exposes runnable Spring MVC examples under `/playground/rest`:
+
+```bash
+curl 'http://localhost:8080/playground/rest/users/getUser?id=101'
+curl 'http://localhost:8080/playground/rest/users/101'
+curl 'http://localhost:8080/playground/rest/users?role=admin&status=active&size=20'
+
+curl -X POST 'http://localhost:8080/playground/rest/orders/bad-create' \
+  -H 'Content-Type: application/json' \
+  -d '{"customerId":42,"items":[101,102]}'
+
+curl -X POST 'http://localhost:8080/playground/rest/orders/good-create' \
+  -H 'Content-Type: application/json' \
+  -H 'Idempotency-Key: checkout-42' \
+  -d '{"customerId":42,"items":[101,102]}'
+```
+
+Call the good create command twice with the same `Idempotency-Key` and compare it with the bad create endpoint. Other endpoints demonstrate PATCH retry behavior, DELETE consistency, large query filters, and payload-size rejection. The implementation is organized under the [rest package](src/main/java/com/example/lifecycle/rest) with separate controller, service, DTO, and repository layers.
+
+### REST question-to-code map
+
+| Lead question | Problem to observe | Bad code | Good code |
+| --- | --- | --- | --- |
+| Where does resource identity belong? | Action routes hide resource intent. | [`badGetUser`](src/main/java/com/example/lifecycle/rest/controller/RestApiDemoController.java) -> [`readBadUser`](src/main/java/com/example/lifecycle/rest/service/RestApiDemoService.java) | [`goodGetUser`](src/main/java/com/example/lifecycle/rest/controller/RestApiDemoController.java) -> [`readGoodUser`](src/main/java/com/example/lifecycle/rest/service/RestApiDemoService.java) |
+| What happens when POST is retried? | A create can produce duplicate orders. | [`badCreateOrder`](src/main/java/com/example/lifecycle/rest/controller/RestApiDemoController.java) -> [`createBadOrder`](src/main/java/com/example/lifecycle/rest/service/RestApiDemoService.java) | [`goodCreateOrder`](src/main/java/com/example/lifecycle/rest/controller/RestApiDemoController.java) -> [`createGoodOrder`](src/main/java/com/example/lifecycle/rest/service/RestApiDemoService.java) |
+| Is PATCH safe to retry? | Delta updates apply the same side effect repeatedly. | [`patchBadBalance`](src/main/java/com/example/lifecycle/rest/service/RestApiDemoService.java) | [`patchGoodBalance`](src/main/java/com/example/lifecycle/rest/service/RestApiDemoService.java) |
+| What should repeated DELETE do? | Retries can repeat cleanup or return inconsistent results. | [`deleteBad`](src/main/java/com/example/lifecycle/rest/service/RestApiDemoService.java) | [`deleteGood`](src/main/java/com/example/lifecycle/rest/service/RestApiDemoService.java) |
+| Where should request limits be enforced? | Arbitrary filters and large bodies pressure infrastructure and the database. | [`manyQueryParams`](src/main/java/com/example/lifecycle/rest/controller/RestApiDemoController.java) and unrestricted request input | [`largePayload`](src/main/java/com/example/lifecycle/rest/controller/RestApiDemoController.java) with service-side size observation |
+
+The [REST study guide](src/main/java/com/example/lifecycle/rest/RestApiStudyGuide.java) prints this same map when running `--playground=rest`, including the endpoint to call for each bad and good implementation.
 
 ## Interview preparation
 

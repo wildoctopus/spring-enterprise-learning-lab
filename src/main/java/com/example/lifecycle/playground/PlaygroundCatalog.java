@@ -48,7 +48,11 @@ public final class PlaygroundCatalog {
                 new Topic("pagination", "Pagination and API error design",
                         "Compare offset and cursor pagination with validation and continuation behavior.",
                         "Replay a tenant-a cursor under tenant-b and observe INVALID_CURSOR.",
-                        "How do you make pagination bounded, deterministic, tenant-safe, and observable?"));
+                        "How do you make pagination bounded, deterministic, tenant-safe, and observable?"),
+                new Topic("rest", "REST API design, retries, and idempotency",
+                        "Inspect resource identity, query filters, payload limits, and duplicate-request failure modes.",
+                        "Retry POST, overload the query string with many filters, or mix identity and selection in the same URL.",
+                        "When is a path param identity, when is it filtering, and how do we make retry-safe create flows?"));
     }
 
     public record Topic(String id, String title, String observe, String breakIt, String enterpriseQuestion) {
