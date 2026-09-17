@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a preparation question
+    url: ../../discussions
+    about: Use Discussions for Java, Spring Boot, SQL, or system-design study questions.
+  - name: Read the contribution guide
+    url: ../../blob/main/CONTRIBUTING.md
+    about: Learn how to propose runnable examples and documentation improvements.

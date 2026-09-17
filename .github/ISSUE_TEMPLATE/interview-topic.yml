@@ -1,0 +1,56 @@
+name: New interview topic
+description: Suggest a searchable Java, Spring Boot, SQL, or system-design learning topic.
+title: "[Topic] "
+labels:
+  - interview-preparation
+  - content
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest a focused topic that can be explained, run, and tested. Do not submit leaked or company-specific interview questions.
+  - type: input
+    id: question
+    attributes:
+      label: Interview question
+      description: What question should a learner be able to answer after this topic?
+      placeholder: Why does @Transactional fail during self-invocation?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Core Java
+        - Collections and concurrency
+        - JVM and garbage collection
+        - Spring Boot
+        - JPA and Hibernate
+        - SQL
+        - REST API design
+        - System design
+        - Testing
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: audience
+    attributes:
+      label: Target audience and search intent
+      description: Who is searching for this and what wording might they use?
+      placeholder: Java developers with 2-5 years of experience preparing for Spring Boot interviews.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Suggested scope
+      description: List the example, failure scenario, test, and production tradeoff you recommend.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References or related code
+      description: Link to existing classes, official documentation, or related issues.

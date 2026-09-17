@@ -1,12 +1,58 @@
-# Spring Enterprise Learning Lab
+# Java Spring Boot Interview Preparation Lab
 
-> A runnable Java 21 + Spring Boot workshop for understanding the decisions behind production-grade enterprise applications.
+> Runnable Java 21 and Spring Boot interview preparation labs covering Core Java, collections, multithreading, JVM internals, Spring Boot, JPA/Hibernate, SQL, REST APIs, system design, and production tradeoffs.
 
-This repository is designed to be read, run, debugged, and extended. Every topic has executable code, tests, failure scenarios, and interview-level tradeoffs.
+This repository is designed for Java backend developers preparing for interviews, strengthening production skills, or teaching enterprise engineering. Every topic has executable code, tests, failure scenarios, and interview-level tradeoffs. It is useful for beginner, experienced, senior, and lead Java developer preparation, including Spring Boot backend roles.
 
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://adoptium.net/temurin/releases/?version=21)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen)](https://spring.io/projects/spring-boot)
 [![Build](https://img.shields.io/badge/build-Maven-blue)](https://maven.apache.org/)
+
+## Contents
+
+- [Why this lab?](#why-this-lab)
+- [Quick start](#quick-start)
+- [Java and Spring Boot interview roadmap](#java-and-spring-boot-interview-roadmap)
+- [Learning path](#learning-path)
+- [Interview question index](#interview-question-index)
+- [Repository map](#repository-map)
+- [Interview preparation](#interview-preparation)
+- [Testing strategy](#testing-strategy)
+- [Contributing](#contributing)
+
+## Java and Spring Boot interview roadmap
+
+Use the roadmap below to prepare for Java backend interviews at service companies,
+product companies, and startups. Study the explanation, run the example, break the
+implementation, and use the test to verify the behavior.
+
+### Core Java interview preparation
+
+- OOP, abstraction, inheritance, polymorphism, and composition.
+- `String` immutability, string pool, `equals()`, and `hashCode()`.
+- Collections, generics, `Optional`, exceptions, and Java Streams.
+- Multithreading, `synchronized`, `volatile`, executors, and `CompletableFuture`.
+- JVM memory, garbage collection, class loading, and diagnostic tools.
+
+### Spring Boot interview preparation
+
+- Dependency injection, bean lifecycle, `@Configuration`, and `@Bean`.
+- Conditional beans, profiles, configuration boundaries, and testing with doubles.
+- `@Transactional`, rollback, self-invocation, caching, and proxy behavior.
+- REST resources, validation, pagination, error responses, and idempotency.
+- JPA/Hibernate fetch plans, N+1 queries, locking, batching, and transactions.
+
+### Senior Java and system design preparation
+
+- SQL indexes, query plans, isolation, deadlocks, and keyset pagination.
+- Retries, timeouts, circuit breakers, backpressure, and graceful shutdown.
+- Idempotency, outbox delivery, event redelivery, reconciliation, and observability.
+- API scalability, multi-tenant boundaries, consistency, and failure isolation.
+- How to explain complexity, tradeoffs, testing strategy, and operational risk.
+
+The examples use generic enterprise scenarios rather than leaked or company-specific
+interview questions. For India-focused preparation, combine this roadmap with the
+coding, SQL, Spring Boot, and system-design rounds used for Java backend roles.
 
 ## Why this lab?
 
@@ -583,7 +629,7 @@ src/main/java/com/example/lifecycle/
 └── streams/       Java 8+ Stream coding exercises
 ```
 
-## Contributing and extending
+## Contributing
 
 This project is intentionally easy to fork and extend. A useful contribution should include:
 
@@ -595,8 +641,15 @@ This project is intentionally easy to fork and extend. A useful contribution sho
 
 Good next modules include resilience and retries, Testcontainers, messaging and outbox delivery, observability, security boundaries, rate limiting, and contract testing.
 
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Use
+[GitHub Discussions](../../discussions) for preparation questions and study ideas,
+and use an [issue template](.github/ISSUE_TEMPLATE/) for a focused content request
+or bug report.
+
 ## Project name
 
-**Spring Enterprise Learning Lab** is the working project name. It is broad enough to grow beyond bean lifecycle while making the purpose clear to someone discovering the repository.
+**Java Spring Boot Interview Preparation Lab** describes the repository's primary
+purpose while leaving room for more enterprise Java, backend, and system-design
+topics.
 
 If this lab helps your preparation, fork it, adapt the examples, and share improvements through a pull request or issue. Keep examples runnable and explain the tradeoff behind every pattern.

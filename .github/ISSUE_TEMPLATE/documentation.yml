@@ -1,0 +1,27 @@
+name: Documentation improvement
+description: Suggest a clearer explanation, roadmap addition, or navigation improvement.
+title: "[Docs] "
+labels:
+  - documentation
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Which README section or documentation file should change?
+    validations:
+      required: true
+  - type: textarea
+    id: improvement
+    attributes:
+      label: Suggested improvement
+      description: What should be added, clarified, reorganized, or corrected?
+    validations:
+      required: true
+  - type: textarea
+    id: audience
+    attributes:
+      label: Learner and search intent
+      description: Who would benefit and what would they search for?
+    validations:
+      required: true
